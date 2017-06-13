@@ -287,7 +287,7 @@ abstract class SlimController {
         ) {
             $template .= '.' . $this->renderTemplateSuffix;
         }
-        $this->app->fetch($template, $args);
+        $this->app->view->fetch($template, $args);
     }
 
 }
