@@ -18,8 +18,8 @@ namespace SlimController;
  * Implements a basic controller functionallity.
  * It should not be instanciated directly but extended from.
  */
-abstract class SlimController
-{
+abstract class SlimController {
+
     /**
      * @const string
      */
@@ -67,15 +67,14 @@ abstract class SlimController
      *
      * @param \Slim\Slim $app Ref to slim app
      */
-    public function __construct(\Slim\Slim &$app)
-    {
+    public function __construct(\Slim\Slim &$app) {
         $this->app = $app;
         if ($renderTemplateSuffix = $app->config('controller.template_suffix')) {
             $this->renderTemplateSuffix = $renderTemplateSuffix;
         }
         if (!is_null($paramPrefix = $app->config('controller.param_prefix'))) {
             $this->paramPrefix = $paramPrefix;
-            $prefixLength      = strlen($this->paramPrefix);
+            $prefixLength = strlen($this->paramPrefix);
             if ($prefixLength > 0 && substr($this->paramPrefix, -$prefixLength) !== '.') {
                 $this->paramPrefix .= '.';
             }
@@ -91,10 +90,8 @@ abstract class SlimController
      * @param string $template Name of the template to be rendererd
      * @param array  $args     Args for view
      */
-    protected function render($template, $args = array())
-    {
-        if (!is_null($this->renderTemplateSuffix)
-            && !preg_match('/\.' . $this->renderTemplateSuffix . '$/', $template)
+    protected function render($template, $args = array()) {
+        if (!is_null($this->renderTemplateSuffix) && !preg_match('/\.' . $this->renderTemplateSuffix . '$/', $template)
         ) {
             $template .= '.' . $this->renderTemplateSuffix;
         }
@@ -106,8 +103,7 @@ abstract class SlimController
      *
      * @param string $path
      */
-    protected function redirect($path)
-    {
+    protected function redirect($path) {
         $this->app->redirect($path);
     }
 
@@ -116,8 +112,7 @@ abstract class SlimController
      *
      * @return \Slim\Http\Request
      */
-    protected function request()
-    {
+    protected function request() {
         return $this->app->request();
     }
 
@@ -126,8 +121,7 @@ abstract class SlimController
      *
      * @return \Slim\Http\Response
      */
-    protected function response()
-    {
+    protected function response() {
         return $this->app->response();
     }
 
@@ -147,10 +141,9 @@ abstract class SlimController
      *
      * @return mixed Either array or single string or null
      */
-    protected function param($name, $reqMode = null, $cleanup = null)
-    {
+    protected function param($name, $reqMode = null, $cleanup = null) {
         $cleanup = is_null($cleanup) ? $this->paramCleanup : $cleanup;
-        $name    = $this->paramPrefix . $name;
+        $name = $this->paramPrefix . $name;
         $reqMeth = $this->paramAccessorMeth($reqMode);
 
         // determine stash name
@@ -189,15 +182,14 @@ abstract class SlimController
      *
      * @return mixed Either array or single string or null
      */
-    protected function params($names = array(), $reqMode = null, $defaults = null)
-    {
+    protected function params($names = array(), $reqMode = null, $defaults = null) {
         // no names given -> get them all
         if (!$names) {
             $names = $this->getAllParamNames($reqMode);
         }
         $res = array();
         foreach ($names as $obj) {
-            $name  = is_array($obj) ? $obj[0] : $obj;
+            $name = is_array($obj) ? $obj[0] : $obj;
             $param = $this->param($name, $reqMode);
             if (!is_null($param) && (!is_array($param) || !empty($param))) {
                 $res[$name] = $param;
@@ -220,8 +212,7 @@ abstract class SlimController
      *
      * @return string
      */
-    protected function cleanupParam($value)
-    {
+    protected function cleanupParam($value) {
         if (is_array($value)) {
             foreach ($value as $k => $v) {
                 $clean = $this->cleanupParam($v);
@@ -243,13 +234,11 @@ abstract class SlimController
      *
      * @return array
      */
-    protected function flatten(array $data)
-    {
+    protected function flatten(array $data) {
         return $this->flattenInner($data);
     }
 
-    private function flattenInner(array $data, $prefix = '', &$flat = array())
-    {
+    private function flattenInner(array $data, $prefix = '', &$flat = array()) {
         foreach ($data as $key => $value) {
             // is array -> flatten deep
             if (is_array($value)) {
@@ -263,31 +252,42 @@ abstract class SlimController
         return $flat;
     }
 
-    private function paramAccessorMeth($reqMode = null)
-    {
+    private function paramAccessorMeth($reqMode = null) {
         return $reqMode === true || $reqMode === 'post' // POST
-            ? 'post'
-            : ($reqMode === false || $reqMode === 'get' // GET
-                ? 'get'
-                : 'params' // ALL
-            );
+                ? 'post' : ($reqMode === false || $reqMode === 'get' // GET
+                ? 'get' : 'params' // ALL
+                );
     }
 
-    private function getAllParamNames($reqMode)
-    {
-        $reqMeth  = $this->paramAccessorMeth($reqMode);
-        $params   = $this->request()->$reqMeth();
+    private function getAllParamNames($reqMode) {
+        $reqMeth = $this->paramAccessorMeth($reqMode);
+        $params = $this->request()->$reqMeth();
         $namesPre = $this->flatten($params);
-        $names    = array_keys($namesPre);
+        $names = array_keys($namesPre);
         if ($prefix = $this->paramPrefix) {
             $prefixLen = strlen($prefix);
-            $names     = array_map(function ($key) use ($prefixLen) {
+            $names = array_map(function ($key) use ($prefixLen) {
                 return substr($key, $prefixLen);
             }, array_filter($names, function ($in) use ($prefix) {
-                return strpos($in, $prefix) === 0;
-            }));
+                        return strpos($in, $prefix) === 0;
+                    }));
         }
 
         return $names;
     }
+
+    /**
+     * Fetches output with given template
+     *
+     * @param string $template Name of the template to be rendererd
+     * @param array  $args     Args for view
+     */
+    protected function fetch($template, $args = array()) {
+        if (!is_null($this->renderTemplateSuffix) && !preg_match('/\.' . $this->renderTemplateSuffix . '$/', $template)
+        ) {
+            $template .= '.' . $this->renderTemplateSuffix;
+        }
+        $this->app->fetch($template, $args);
+    }
+
 }
